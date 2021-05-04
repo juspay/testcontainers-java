@@ -239,7 +239,7 @@ public class DockerComposeContainer<SELF extends DockerComposeContainer<SELF>> e
         String optionsString = options
             .stream()
             .collect(joining(" "));
-        if (optionsString.length() !=0 ) {
+        if (optionsString.length() != 0) {
             // ensures that there is a space between the options and 'up' if options are passed.
             return optionsString + " ";
         } else {
@@ -279,6 +279,12 @@ public class DockerComposeContainer<SELF extends DockerComposeContainer<SELF>> e
         //follow logs using registered consumers for this service
         logConsumers.getOrDefault(serviceName, Collections.emptyList()).forEach(consumer -> followLogs(containerId, consumer));
         serviceInstanceMap.putIfAbsent(serviceName, containerInstance);
+    }
+
+    protected void waitFor(String serviceName) {
+        ComposeServiceWaitStrategyTarget target = serviceInstanceMap.getOrDefault(serviceName, null);
+        if (target == null) throw new IllegalStateException("Service instance " + serviceName + "not found");
+        waitUntilServiceStarted(serviceName, target);
     }
 
     private void waitUntilServiceStarted(String serviceName, ComposeServiceWaitStrategyTarget serviceInstance) {
@@ -469,8 +475,8 @@ public class DockerComposeContainer<SELF extends DockerComposeContainer<SELF>> e
 
         if (portMap == null) {
             throw new IllegalArgumentException("Could not get a port for '" + serviceName + "'. " +
-                                               "Testcontainers does not have an exposed port configured for '" + serviceName + "'. " +
-                                               "To fix, please ensure that the service '" + serviceName + "' has ports exposed using .withExposedService(...)");
+                "Testcontainers does not have an exposed port configured for '" + serviceName + "'. " +
+                "To fix, please ensure that the service '" + serviceName + "' has ports exposed using .withExposedService(...)");
         } else {
             return ambassadorContainer.getMappedPort(portMap.get(servicePort));
         }
@@ -635,7 +641,7 @@ class ContainerisedDockerCompose extends GenericContainer<ContainerisedDockerCom
         // Map the docker compose file into the container
         final File dockerComposeBaseFile = composeFiles.get(0);
         final String pwd = dockerComposeBaseFile.getAbsoluteFile().getParentFile().getAbsolutePath();
-        final String containerPwd =  convertToUnixFilesystemPath(pwd);
+        final String containerPwd = convertToUnixFilesystemPath(pwd);
 
         final List<String> absoluteDockerComposeFiles = composeFiles.stream()
             .map(File::getAbsolutePath)
@@ -682,9 +688,9 @@ class ContainerisedDockerCompose extends GenericContainer<ContainerisedDockerCom
         if (exitCode == null || exitCode != 0) {
             throw new ContainerLaunchException(
                 "Containerised Docker Compose exited abnormally with code " +
-                exitCode +
-                " whilst running command: " +
-                StringUtils.join(this.getCommandParts(), ' '));
+                    exitCode +
+                    " whilst running command: " +
+                    StringUtils.join(this.getCommandParts(), ' '));
         }
     }
 
@@ -787,7 +793,7 @@ class LocalDockerCompose implements DockerCompose {
 
         } catch (InvalidExitValueException e) {
             throw new ContainerLaunchException("Local Docker Compose exited abnormally with code " +
-                                               e.getExitValue() + " whilst running command: " + cmd);
+                e.getExitValue() + " whilst running command: " + cmd);
 
         } catch (Exception e) {
             throw new ContainerLaunchException("Error running local Docker Compose command: " + cmd, e);
