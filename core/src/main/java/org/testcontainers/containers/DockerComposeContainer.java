@@ -482,6 +482,14 @@ public class DockerComposeContainer<SELF extends DockerComposeContainer<SELF>> e
         }
     }
 
+    /**
+     * Accessor for parsed docker-compose file
+     * @return
+     */
+    public DockerComposeFiles getDockerComposeFiles() {
+        return dockerComposeFiles;
+    }
+
     public SELF withScaledService(String serviceBaseName, int numInstances) {
         scalingPreferences.put(serviceBaseName, numInstances);
 

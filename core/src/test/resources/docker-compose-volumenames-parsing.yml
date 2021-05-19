@@ -1,0 +1,6 @@
+version: "3"
+volumes:
+  euler-api-txns-nix-store:
+    external: true
+  not-an-external-volume:
+

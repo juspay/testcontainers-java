@@ -2,6 +2,7 @@ package org.testcontainers.containers;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
+import com.sun.tools.javac.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +33,9 @@ class ParsedDockerComposeFile {
 
     @Getter
     private Map<String, Set<String>> serviceNameToImageNames = new HashMap<>();
+
+    @Getter
+    private Set<String> externalVolumes = new HashSet<>();
 
     ParsedDockerComposeFile(File composeFile) {
         Yaml yaml = new Yaml();
@@ -54,8 +59,13 @@ class ParsedDockerComposeFile {
     }
 
     private void parseAndValidate() {
+        parseImages();
+        parseVolumes();
+    }
+
+    private void parseImages() {
         final Map<String, ?> servicesMap;
-        if (composeFileContent.containsKey("version")) {
+        if (composeFileContent.keySet().stream().anyMatch(s -> List.of("version", "volumes").contains(s))) {
             if ("2.0".equals(composeFileContent.get("version"))) {
                 log.warn("Testcontainers may not be able to clean up networks spawned using Docker Compose v2.0 files. " +
                     "Please see https://github.com/testcontainers/moby-ryuk/issues/2, and specify 'version: \"2.1\"' or " +
@@ -90,6 +100,18 @@ class ParsedDockerComposeFile {
             validateNoContainerNameSpecified(serviceName, serviceDefinitionMap);
             findServiceImageName(serviceName, serviceDefinitionMap);
             findImageNamesInDockerfile(serviceName, serviceDefinitionMap);
+        }
+    }
+
+    private void parseVolumes() {
+        final Map<String, ?> volumes = (Map<String, ?>) composeFileContent.getOrDefault("volumes", new HashMap<>());
+        for (Map.Entry<String, ?> volume : volumes.entrySet()) {
+            if (volume.getValue() instanceof Map) {
+                final Map<String, ?> volumeProps = (Map<String, ?>) volume.getValue();
+                if (Boolean.TRUE.equals(volumeProps.getOrDefault("external", null))) {
+                    externalVolumes.add(volume.getKey());
+                }
+            }
         }
     }
 

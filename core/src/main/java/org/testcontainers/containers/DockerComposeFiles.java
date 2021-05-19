@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toSet;
 
 public class DockerComposeFiles {
 
@@ -40,4 +43,11 @@ public class DockerComposeFiles {
         return imageNames;
     }
 
+    /**
+     * @return set of external volumes referenced in `volumes` section in all docker files.
+     */
+    public Set<String> getExternalVolumes() {
+        return parsedComposeFiles.stream()
+            .flatMap(f -> f.getExternalVolumes().stream()).collect(toSet());
+    }
 }
