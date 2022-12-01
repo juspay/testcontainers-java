@@ -178,7 +178,7 @@ dependencies {
         exclude(group: 'org.jetbrains', module: 'annotations')
     }
 
-    compile "com.github.docker-java:docker-java-api:3.2.8"
+    compile "com.github.docker-java:docker-java-api:3.2.14"
 
     shaded ('com.github.docker-java:docker-java-core:3.2.8') {
         exclude(group: 'com.github.docker-java', module: 'docker-java-api')
